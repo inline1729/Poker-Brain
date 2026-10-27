@@ -24,6 +24,7 @@ import tensorflow as tf
 from tensorflow.keras import layers, models
 from phevaluator.evaluator import evaluate_cards
 import getpass
+import time
 
 
 # dict to convert cards into numbers for the AI
@@ -218,11 +219,13 @@ def main():
         print("Example (River): KH KS, 2D TC JD QS 3H, 150, 1000")
         '''
 
-        with open(filepath, "r") as f:
-            contents = f.read()
+        with open(filepath, "r") as file:
+            contents = file.read()
         user_input = contents
-        with open(filepath, "w") as fi:
-            fi.write("")
+        '''
+        with open(filepath, "w") as file:
+            file.write("")
+        '''
         if user_input.lower() == 'exit':
             print("Goodbye!")
             break
@@ -230,8 +233,9 @@ def main():
         try:
             parts = user_input.split(',')
             if len(parts) != 4:
-                input()
-                raise ValueError("Input must have exactly 3 commas separating the 4 sections.")
+                time.sleep(2)
+                #raise ValueError("Input must have exactly 3 commas separating the 4 sections.")
+
 
 
             # Isolate raw card string chunks cleanly
@@ -276,19 +280,18 @@ def main():
             print(f" -> Calculated Hand Value Rank: {int(live_hand_score * 7462)} / 7462")
             print(f" -> Primary Choice: **{chosen_action}** (Confidence: {confidence:.2f}%)")
             if chosen_action == "RAISE":
-                with open(filepath, "w") as fil:
-                    fil.write("RAISE\n")
-                    fil.write(str(int(-0.25*(live_hand_score*7462) + float(val_ai_money*max_money))))
+                with open(filepath, "w") as file:
+                    file.write("RAISE")
+                    file.write(str(int(-0.25*(live_hand_score*7462) + float(val_ai_money*max_money))))
             elif chosen_action == "CALL":
-                with open(filepath, "w") as fa:
-                    fa.write("CALL\n")
+                with open(filepath, "w") as file:
+                    file.write("CALL")
             else:
-                with open(filepath, "w") as files:
-                    files.write("FOLD\n")
+                with open(filepath, "w") as file:
+                    file.write("FOLD")
 
 
-            print(f" -> Breakdown: [FOLD: {probabilities[0] * 100:.1f}%] | [CALL: {probabilities[1] * 100:.1f}%] | [RAISE: {probabilities[2] * 100:.1f}%]")
-            input()
+            #print(f" -> Breakdown: [FOLD: {probabilities[0] * 100:.1f}%] | [CALL: {probabilities[1] * 100:.1f}%] | [RAISE: {probabilities[2] * 100:.1f}%]")
 
 
         except ValueError as e:
