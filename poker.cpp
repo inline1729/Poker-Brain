@@ -9,6 +9,7 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
+#include <sstream>
 using namespace std;
 string flyonehand;
 string flytwohand;
@@ -69,7 +70,7 @@ vector<int> hands(string player,int bet,string hand,int betin){
     vector<int> numbers={0,0,0,0,0,0,0,0,0,0,0,0,0};
     vector<int> rank(8, 0);
     if (betin==-1){
-        cout<<player<<"folded"<< '\n';
+        cout<<player<<" folded"<< '\n';
         rank[0]=-1;
         return rank;
     }
@@ -258,14 +259,50 @@ vector<int> hands(string player,int bet,string hand,int betin){
         break;
    
 }
-    cout<<player<<"had a"<<hand<<"\n";
+    cout<<player<<"had a "<<hand<<"\n";
 
     return rank;
 //print
 }
-string askBot(const string& hand, int meet, int money) {
+// How to start the bot. Use the Python version that has TensorFlow installed,
+// and a full path (in quotes if it has spaces) if the game isn't launched from the bot's folder.
+// e.g. "py -3.12 \"C:\\path\\to\\pokerbot.py\""
+const string BOT_CMD = "py pokerbot.py";
+
+string botFilePath() {
     const char* home = getenv("USERPROFILE");
-    string path = string(home ? home : ".") + "\\text.txt";   // same file as Python
+    return string(home ? home : ".") + "\\text.txt";
+}
+
+bool startBot() {
+    string path = botFilePath();
+    { ofstream out(path, ios::trunc); }              // clear leftovers from the last run
+
+    string cmd = "start \"Poker Bot\" cmd /k " + BOT_CMD;
+    system(cmd.c_str());                             // opens the bot in its own window, returns at once
+
+    cout << "Starting the bot (training takes a minute)..." << endl;
+    for (int i = 0; i < 3600; i++) {                 // wait up to 3 minutes
+        this_thread::sleep_for(chrono::milliseconds(50));
+        ifstream in(path);
+        stringstream ss;
+        ss << in.rdbuf();
+        string text = ss.str();
+        if (!text.empty() && text.back() == '\n' && text.rfind("READY", 0) == 0) {
+            cout << "Bot is ready.\n";
+            return true;
+        }
+    }
+    cout << "The bot never said it was ready. Check the bot window for errors.\n";
+    return false;
+}
+
+void stopBot() {
+    ofstream out(botFilePath(), ios::trunc);
+    out << "exit";                                   // tells the bot to shut down
+}
+string askBot(const string& hand, int meet, int money) {
+        string path = botFilePath();
 
     string cards = hand.substr(0,2) + " " + hand.substr(2,2) + ", ";
     for (size_t i = 4; i + 1 < hand.size(); i += 2) {
@@ -593,7 +630,8 @@ if (bestPlayer != -1) {
 return "No winner";
 }
 int main(){
-srand(time(NULL));
+ srand(time(NULL));
+    if (!startBot()) return 1;
 while (replay=="y"){
 //blinds
 deque<string> deck =shuffledeck();
@@ -602,8 +640,8 @@ betin = {1,1,1,1};
 pot = 0;
 river = "";
 winner=playhand(deck,players);
-cout<<"winner is"<<winner<<'\n';
-cout<<"they won"<<pot<<'\n';
+cout<<"winner is "<<winner<<'\n';
+cout<<"they won $"<<pot<<'\n';
 blind=players[(c + 1) % 4];
 sblind=players[(c + 2) % 4];
 cout<<"do you want to play again y/n:";
@@ -617,5 +655,6 @@ else{
     c = (c + 1) % 4;
 }
 }
+stopBot();
 return(0);
 }
