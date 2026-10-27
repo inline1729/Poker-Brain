@@ -267,7 +267,7 @@ vector<int> hands(string player,int bet,string hand,int betin){
 // How to start the bot. Use the Python version that has TensorFlow installed,
 // and a full path (in quotes if it has spaces) if the game isn't launched from the bot's folder.
 // e.g. "py -3.12 \"C:\\path\\to\\pokerbot.py\""
-const string BOT_CMD = "py pokerbot.py";
+const string BOT_CMD = "py main.py";
 
 string botFilePath() {
     const char* home = getenv("USERPROFILE");
